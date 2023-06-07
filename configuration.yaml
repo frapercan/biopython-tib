@@ -1,0 +1,9 @@
+mail: frapercan1@alum.us.es
+
+# search
+db: nucleotide
+search_term: ABCB1[All Fields] AND "Homo sapiens"[Organism]
+num_results: 5
+select: 1
+
+# Blast
