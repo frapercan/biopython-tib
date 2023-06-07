@@ -54,13 +54,13 @@ class SequenceAnalysis:
         # Return the selected sequence
         return sequences[index]
 
-    def blast_sequence(self, sequence,output_file="resultados.xml"):
+    def blast_sequence(self, sequence):
         logging.info("Performing BLAST...")
         result_handle = NCBIWWW.qblast("blastn", "nr", sequence.seq)
         logging.info("BLAST Finished...")
-        save_file_path = output_file
-
-        with open(save_file_path, "w") as output_file:
+        file_path = os.path.join(f"./results/blast/{sequence.id}.xml")
+        print(file_path)
+        with open(file_path, "w") as output_file:
             output_file.write(result_handle.read())
 
         logging.info(f"BLAST result saved as: {output_file}")
@@ -68,13 +68,15 @@ class SequenceAnalysis:
         result_handle.close()
 
 
-    def save_sequences_to_fasta(self, sequences, output_file):
+    def save_sequence_to_fasta(self, sequence):
         logging.info("Saving sequences to FASTA file...")
-        with open(output_file, "w") as file:
-            SeqIO.write(sequences, file, "fasta")
+        outfile = f"./results/searchz/f{sequence.id}.fasta"
+
+        with open(outfile, "w") as file:
+            SeqIO.write(sequence, file, "fasta")
 
     def perform_alignment(self, sequences_dir):
-        outfile = f"./results/aligned/f{input_filename}"
+        outfile = f"./results/aligned/f{sequences_dir}"
         logging.info("Performing sequence alignment...")
         clustalomega_cline = ClustalOmegaCommandline(infile=f"./samples/multiple/{sequences_dir}", outfile=outfile, verbose=True, auto=True, force=True)
         stdout, stderr = clustalomega_cline()
@@ -116,15 +118,15 @@ if __name__ == "__main__":
     seq_ids = analyzer.search_sequence(term, retmax=5)
     seqs = analyzer.fetch_sequences(seq_ids)
     seq = analyzer.choose_sequence(seqs)
-    analyzer.save_sequences_to_fasta(seq,output_file=os.path.join(output_folder,"fasta",f"{seq.id}.fasta"))
+    analyzer.save_sequence_to_fasta(seq)
+
+    # # # # BLAST
+    blast_sequences = analyzer.blast_sequence(seq)
     #
-    # # # BLAST
-    blast_sequences = analyzer.blast_sequence(seq,os.path.join(output_folder,"blast",f"{seq.id}.xml"))
-
-
-    # # Realizar alinemiento múltiple de Secuencias
+    #
+    # # # Realizar alinemiento múltiple de Secuencias
     input_filename = "ABCB1_refseq_transcript.fasta"
     alignment = analyzer.perform_alignment(input_filename)
-    # # Generar árbol filogenético
+    # # # Generar árbol filogenético
     tree = analyzer.generate_phylogenetic_tree(alignment)
 
